@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Medicamentos - LINAME</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+    <div class="max-w-4xl mx-auto py-10 px-4">
+        <!-- Encabezado -->
+        <div class="card-gradient rounded-xl shadow-2xl p-8 mb-8 text-white text-center">
+            <h1 class="text-3xl font-bold mb-2">Buscador de Medicamentos</h1>
+            <p class="opacity-90">Selecciona un fármaco para ver los detalles de la base de datos LINAME</p>
+        </div>
+
+        <!-- Selector -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <label for="med-select" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Medicamento:</label>
+            <select id="med-select" class="block w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                <option value="">-- Elige un medicamento de la lista --</option>
+            </select>
+        </div>
+
+        <!-- Tarjeta de Detalles -->
+        <div id="details-card" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+            <div class="bg-indigo-600 px-6 py-4">
+                <h2 id="det-name" class="text-xl font-bold text-white uppercase tracking-wide"></h2>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold">Código (COD)</p>
+                        <p id="det-cod" class="text-lg text-gray-800 font-semibold"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold">Forma Farmacéutica</p>
+                        <p id="det-forma" class="text-lg text-gray-800"></p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold">Concentración</p>
+                        <p id="det-conc" class="text-lg text-gray-800 font-medium"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-bold">Clasificación A.T.Q.</p>
+                        <p id="det-atq" class="text-md bg-indigo-50 text-indigo-700 px-2 py-1 rounded inline-block font-mono"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // La base de datos que me proporcionaste convertida a JSON
+        const database = [
+            { cod: "J0501", liname: "ABACAVIR", forma: "Comprimido", conc: "300 mg", atq: "J05AF06" },
+            { cod: "L0209", liname: "ABIRATERONA ACETATO", forma: "Comprimido", conc: "250 mg", atq: "L02BX03" },
+            { cod: "A0601", liname: "ACEITE MINERAL", forma: "Emulsion oral", conc: "0,4", atq: "A06AG06" },
+            { cod: "A1101", liname: "ACEITE VITAMINADO (ALIMENTO)", forma: "Emulsion oral", conc: "Segun disponibilidad", atq: "A11CB**" },
+            { cod: "C0301", liname: "ACETAZOLAMIDA", forma: "Comprimido", conc: "250 mg", atq: "C03**" },
+            { cod: "V0301", liname: "ACETIL CISTEINA", forma: "Inyectable", conc: "0,1", atq: "V03AB23" },
+            { cod: "J0542", liname: "ACICLOVIR", forma: "Comprimido", conc: "200 mg", atq: "J05AB01" },
+            { cod: "J0530", liname: "ACICLOVIR", forma: "Suspension", conc: "200 mg/5 ml", atq: "J05AB01" },
+            { cod: "J0544", liname: "ACICLOVIR", forma: "Inyectable", conc: "250 mg", atq: "J05AB01" },
+            { cod: "S0101", liname: "ACICLOVIR", forma: "Crema o Pomada oftálmica", conc: "0,03", atq: "S01AD03" },
+            { cod: "J0504", liname: "ACICLOVIR", forma: "Comprimido", conc: "400 mg", atq: "J05AB01" },
+            { cod: "D0603", liname: "ACICLOVIR", forma: "Crema dermica", conc: "0,05", atq: "D06BB03" },
+            { cod: "J0545", liname: "ACICLOVIR", forma: "Inyectable", conc: "500 mg", atq: "J05AB01" },
+            { cod: "J0543", liname: "ACICLOVIR", forma: "Comprimido", conc: "800 mg", atq: "J05AB01" },
+            { cod: "G0101", liname: "ACIDO ACETICO", forma: "Solucion topica", conc: "0,5", atq: "G01AD02" },
+            { cod: "B0101", liname: "ACIDO ACETIL SALICILICO", forma: "Comprimido", conc: "100 mg", atq: "B01AC06" },
+            { cod: "N0201", liname: "ACIDO ACETIL SALICILICO", forma: "Comprimido", conc: "500 mg", atq: "N02BA01" },
+            { cod: "M0503", liname: "ACIDO ALENDRONICO", forma: "Comprimido", conc: "70 mg", atq: "M05BA04" },
+            { cod: "B0201", liname: "ACIDO AMINOCAPROICO", forma: "Inyectable", conc: "2g /10 ml", atq: "B02AA01" },
+            { cod: "A1102", liname: "ACIDO ASCORBICO", forma: "Inyectable", conc: "500 mg/ml (2 ml)", atq: "A11GA01" },
+            { cod: "A1103", liname: "ACIDO ASCORBICO", forma: "Solucion oral gotas", conc: "Segun disponibilidad", atq: "A11GA01" },
+            { cod: "B0301", liname: "ACIDO FOLICO", forma: "Comprimido", conc: "5 mg", atq: "B03BB01" },
+            { cod: "B0310", liname: "ACIDO FOLICO", forma: "Comprimido", conc: "800 mcg", atq: "B03BB01" },
+            { cod: "J0103", liname: "ACIDO NALIDIXICO", forma: "Suspension", conc: "125 mg/5 ml", atq: "J01MB02" },
+            { cod: "J0102", liname: "ACIDO NALIDIXICO", forma: "Suspension", conc: "250 mg/5 ml", atq: "J01MB02" },
+            { cod: "J0101", liname: "ACIDO NALIDIXICO", forma: "Comprimido", conc: "500 mg", atq: "J01MB02" },
+            { cod: "J0411", liname: "ACIDO P-AMINOSALICILICO", forma: "Polvo para solucion oral", conc: "4 g", atq: "J04AA01" }
+        ];
+
+        const select = document.getElementById('med-select');
+        const card = document.getElementById('details-card');
+
+        // Llenar el dropdown
+        database.forEach((item, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = `${item.liname} (${item.forma} - ${item.conc})`;
+            select.appendChild(option);
+        });
+
+        // Evento de cambio
+        select.addEventListener('change', (e) => {
+            const index = e.target.value;
+            if (index !== "") {
+                const med = database[index];
+                document.getElementById('det-name').textContent = med.liname;
+                document.getElementById('det-cod').textContent = med.cod;
+                document.getElementById('det-forma').textContent = med.forma;
+                document.getElementById('det-conc').textContent = med.conc;
+                document.getElementById('det-atq').textContent = med.atq;
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
